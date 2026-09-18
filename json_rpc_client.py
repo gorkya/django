@@ -1,19 +1,36 @@
 import json
 import tempfile
 from pathlib import Path
-from urllib import request
+from urllib import error, request
 import ssl
 
+DEFAULT_TIMEOUT = 10
 
-class JSONRPCError(Exception):
+
+class JSONRPCClientError(Exception):
+    """Base for any failure calling the RPC service."""
+
+
+class JSONRPCError(JSONRPCClientError):
     """The service answered with a JSON-RPC error object."""
 
 
+class JSONRPCTransportError(JSONRPCClientError):
+    """Network, HTTP status, or invalid response body."""
+
+
 class JSONRPCClient:
-    def __init__(self, endpoint: str, cert_pem: str, key_pem: str):
+    def __init__(
+        self,
+        endpoint: str,
+        cert_pem: str,
+        key_pem: str,
+        timeout: float = DEFAULT_TIMEOUT,
+    ):
         self.endpoint = endpoint
         self.cert_pem = cert_pem
         self.key_pem = key_pem
+        self.timeout = timeout
 
     def _build_ssl_context(self) -> ssl.SSLContext:
         ssl_context = ssl.create_default_context()
@@ -28,7 +45,7 @@ class JSONRPCClient:
         # them on disk after this point.
         return ssl_context
 
-    def call(self, method: str, params: dict | None = None) -> dict:
+    def call(self, method: str, params: dict | list | None = None) -> dict:
         if params is None:
             params = {}
 
@@ -44,22 +61,21 @@ class JSONRPCClient:
             headers={"Content-Type": "application/json"},
         )
 
-        result = request.urlopen(
-            r,
-            context=ssl_context,
-        )
+        try:
+            response = request.urlopen(r, context=ssl_context, timeout=self.timeout)
+        except error.HTTPError as exc:
+            raise JSONRPCTransportError(f"HTTP {exc.code}: {exc.reason}") from exc
+        except error.URLError as exc:
+            raise JSONRPCTransportError(str(exc.reason)) from exc
 
-        result_dict = json.loads(result.read())
+        try:
+            result_dict = json.loads(response.read())
+        except json.JSONDecodeError as exc:
+            raise JSONRPCTransportError("invalid JSON in response") from exc
 
         if "error" in result_dict:
             raise JSONRPCError(result_dict["error"])
-        return result_dict["result"]
-
-
-if __name__ == "__main__":
-    client = JSONRPCClient(
-        "https://slb.medv.ru/api/v2/",
-        "/Users/gorkya/Downloads/client2026test.crt",
-        "/Users/gorkya/Downloads/client2026test.key",
-    )
-    print(client.call("auth.check", {}))
+        try:
+            return result_dict["result"]
+        except KeyError as exc:
+            raise JSONRPCTransportError("response has no 'result' field") from exc

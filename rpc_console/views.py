@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.generic.edit import FormView
 
-from json_rpc_client import JSONRPCError
+from json_rpc_client import JSONRPCClientError
 
 from .forms import MethodCallForm
 from .services import call_method
@@ -31,7 +31,7 @@ class RPCConsoleView(FormView):
             result = call_method(
                 form.cleaned_data["method"], form.cleaned_data["params"]
             )
-        except JSONRPCError as exc:
+        except JSONRPCClientError as exc:
             context["call_error"] = str(exc)
         else:
             context["result_json"] = json.dumps(result, indent=2, ensure_ascii=False)

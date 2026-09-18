@@ -3,7 +3,7 @@ from unittest import mock
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from json_rpc_client import JSONRPCError
+from json_rpc_client import JSONRPCError, JSONRPCTransportError
 
 
 class MethodCallFormTests(SimpleTestCase):
@@ -70,6 +70,15 @@ class RPCConsoleViewTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "boom")
+
+    @mock.patch("rpc_console.views.call_method")
+    def test_transport_error_is_displayed(self, mock_call_method):
+        mock_call_method.side_effect = JSONRPCTransportError("HTTP 503: Service Unavailable")
+
+        response = self.client.post(self.url, {"method": "auth.check", "params": "{}"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Service Unavailable")
 
     def test_invalid_params_shows_form_error(self):
         response = self.client.post(
