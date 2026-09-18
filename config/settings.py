@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+# Gitignored, local-only: populates os.environ so os.getenv(...) below has
+# something to read. Real deployment would inject these env vars directly
+# instead of through this file.
+import local_secrets
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -122,3 +128,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# JSON-RPC client (rpc_console app)
+# ---------------------------------------------------------------------------
+# Per the assignment: certificate and key content as PEM text, not as paths
+# to files on disk.
+
+JSONRPC_ENDPOINT = "https://slb.medv.ru/api/v2/"
+
+CLIENT_CERT_PEM = os.getenv("CLIENT_CERT_PEM")
+CLIENT_KEY_PEM = os.getenv("CLIENT_KEY_PEM")
