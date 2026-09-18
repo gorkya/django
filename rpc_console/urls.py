@@ -1,8 +1,9 @@
 from django.urls import path
 
-from rpc_console import views
+from rpc_console.views import RPCConsoleView
+
+app_name = "rpc_console"
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("test", views.json_rpc_client_test)
+    path("", RPCConsoleView.as_view(), name="index"),
 ]

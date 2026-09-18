@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>JSON-RPC console</title>
+    <style>
+        :root {
+            --bg: #f7f7f8;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --muted: #6b6b70;
+            --border: #e2e2e5;
+            --accent: #2563eb;
+            --accent-text: #ffffff;
+            --error-bg: #fdecea;
+            --error-text: #7a1f1a;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #17181c;
+                --card-bg: #232429;
+                --text: #ececed;
+                --muted: #9a9aa0;
+                --border: #34353b;
+                --accent: #3b82f6;
+                --accent-text: #ffffff;
+                --error-bg: #3a1f1e;
+                --error-text: #f3a9a3;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 48px 16px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        h1 {
+            font-size: 20px;
+            margin: 0 0 4px;
+            text-align: center;
+        }
+        .endpoint {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 24px;
+            word-break: break-all;
+            text-align: center;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .field { margin-bottom: 16px; }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+        textarea { font-family: ui-monospace, monospace; resize: vertical; }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .help { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .field-error { font-size: 12px; color: var(--error-text); margin-top: 4px; }
+        button {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: var(--accent-text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        button:hover { opacity: 0.9; }
+        h2 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin: 24px 0 8px;
+        }
+        pre {
+            margin: 0;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-family: ui-monospace, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .error-block {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>JSON-RPC console</h1>
+        <p class="endpoint">{{ endpoint }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label for="{{ form.method.id_for_label }}">Метод</label>
+                {{ form.method }}
+                {% for error in form.method.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="field">
+                <label for="{{ form.params.id_for_label }}">Параметры</label>
+                {{ form.params }}
+                <div class="help">{{ form.params.help_text }}</div>
+                {% for error in form.params.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+            <button type="submit">Вызвать</button>
+        </form>
+
+        {% if result_json %}
+            <h2>Result</h2>
+            <pre>{{ result_json }}</pre>
+        {% endif %}
+
+        {% if call_error %}
+            <h2>Error</h2>
+            <pre class="error-block">{{ call_error }}</pre>
+        {% endif %}
+    </div>
+</body>
+</html>
