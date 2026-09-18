@@ -24,7 +24,10 @@ class JSONRPCClient:
         # them on disk after this point.
         return ssl_context
 
-    def call(self, method: str, params: dict) -> dict:
+    def call(self, method: str, params: dict = None) -> dict:
+        if params is None:
+            params = {}
+
         ssl_context = self._build_ssl_context()
 
         payload = {"jsonrpc": "2.0", "method": method, "params": params, "id": 1}
