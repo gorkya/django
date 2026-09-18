@@ -14,7 +14,7 @@ class MethodCallForm(forms.Form):
         help_text="JSON-объект или массив параметров",
     )
 
-    def clean_params(self):
+    def clean_params(self) -> dict | list:
         raw = self.cleaned_data["params"].strip()
         if not raw:
             return {}
@@ -23,5 +23,7 @@ class MethodCallForm(forms.Form):
         except json.JSONDecodeError as exc:
             raise forms.ValidationError(f"Некорректный JSON: {exc}") from exc
         if not isinstance(value, (dict, list)):
-            raise forms.ValidationError("Параметры должны быть JSON-объектом или массивом")
+            raise forms.ValidationError(
+                "Параметры должны быть JSON-объектом или массивом"
+            )
         return value

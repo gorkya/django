@@ -11,6 +11,10 @@ TLS (клиентский сертификат + ключ).
 ```python
 import os
 
+os.environ["DJANGO_SECRET_KEY"] = (
+    "значение, которое сгенерировал django-admin startproject"
+)
+
 os.environ["CLIENT_CERT_PEM"] = """-----BEGIN CERTIFICATE-----
 ...содержимое client2026test.crt целиком...
 -----END CERTIFICATE-----

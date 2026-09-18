@@ -13,9 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
-# Gitignored, local-only: populates os.environ so os.getenv(...) below has
-# something to read. Real deployment would inject these env vars directly
-# instead of through this file.
+# Gitignored, local-only: sets os.environ before os.getenv(...) below reads it.
 import local_secrets
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-uha&gqa13=x8u=zq0@(sxrzo4^-+#(j0m26x=erc$^ho7t(bm7"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -43,8 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    "rpc_console"
+    "rpc_console",
 ]
 
 MIDDLEWARE = [
@@ -131,9 +128,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # JSON-RPC client (rpc_console app)
-# ---------------------------------------------------------------------------
-# Per the assignment: certificate and key content as PEM text, not as paths
-# to files on disk.
 
 JSONRPC_ENDPOINT = "https://slb.medv.ru/api/v2/"
 

@@ -3,6 +3,8 @@ from unittest import mock
 from django.test import SimpleTestCase
 from django.urls import reverse
 
+from json_rpc_client import JSONRPCError
+
 
 class MethodCallFormTests(SimpleTestCase):
     def _form(self, **data):
@@ -62,7 +64,7 @@ class RPCConsoleViewTests(SimpleTestCase):
 
     @mock.patch("rpc_console.views.call_method")
     def test_call_error_is_displayed(self, mock_call_method):
-        mock_call_method.side_effect = Exception("boom")
+        mock_call_method.side_effect = JSONRPCError({"code": -32000, "message": "boom"})
 
         response = self.client.post(self.url, {"method": "auth.check", "params": "{}"})
 
@@ -70,7 +72,9 @@ class RPCConsoleViewTests(SimpleTestCase):
         self.assertContains(response, "boom")
 
     def test_invalid_params_shows_form_error(self):
-        response = self.client.post(self.url, {"method": "auth.check", "params": "{bad"})
+        response = self.client.post(
+            self.url, {"method": "auth.check", "params": "{bad"}
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Некорректный JSON")
